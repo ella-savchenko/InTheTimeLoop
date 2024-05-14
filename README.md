@@ -8,4 +8,4 @@ Framework for investigating data remanence in the main memory of virtual machine
 4. visualize the evaluation´s results (InTheTimeLoop/searchDATA/visualization).
 
 ## Log files and results of experiments
-Due to the large size of raw logging data, these were not uploaded here. If you are interested in raw data, please contact me: at ella.savchenko@fau.de. For the results of the experiments refer to the evaluated CSV data from raw logging files (searchDATA/evaluation/results*).
+Due to the large size of raw logging data, these were not uploaded here. If you are interested in raw data, please contact me at ella.savchenko@fau.de. For the results of the experiments refer to the evaluated CSV data from raw logging files (searchDATA/evaluation/results*).
