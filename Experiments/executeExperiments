@@ -1,0 +1,339 @@
+#! /bin/bash
+
+VM_NAME=vn_name
+VM_EXEC_PATH=path
+VM_USER=username
+VM_PASSWD=userpasswd
+VM_EXEC=./writeDATAmmFOCUS
+
+
+
+max=20
+for i in `seq 1 $max`
+do
+    echo "*****************************************************************"
+    echo "Iteration $i"
+    date
+    
+  
+    	virsh start $VM_NAME
+
+	sleep 70
+	
+
+	sudo -u user -- sshpass -p userpasswd ssh user@ip "cd $VM_EXEC_PATH; $VM_EXEC" &
+	
+	# ********************B1 - half time*******************************
+	
+
+	sleep 500
+	
+	virsh dump $VM_NAME --memory-only kvm_b1_it$i.dmp 
+	
+	#writeDATA waits for 10 mins
+
+	sleep 10
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B1-halft time written patterns: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b1_it$i.dmp > test
+	
+	echo "search grep R B1"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B1"
+	
+	
+	# ********************B2 - all written (just) and not terminated*******************************
+	
+	sleep 600
+	
+	virsh dump $VM_NAME --memory-only kvm_b2_it$i.dmp 
+	
+
+	sleep 10
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B2-just written patterns: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b2_it$i.dmp > test
+	
+	echo "search grep R B2"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B2"
+	
+	
+	# ********************B3 - all written after halft time not terminated (after 5 m)*******************************
+	
+	sleep 300
+	
+	virsh dump $VM_NAME --memory-only kvm_b3_it$i.dmp 
+	
+
+	sleep 10
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B3- written patterns 5 mins after, not terminated: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b3_it$i.dmp > test
+	
+	echo "search grep R B3"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B3"
+	
+	# ********************B4 - just terminated (after 5 m + 6m)*******************************
+	
+	sleep 360
+	
+	virsh dump $VM_NAME --memory-only kvm_b4_it$i.dmp 
+	
+
+	sleep 10
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B4 - written patterns after just terminated: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b4_it$i.dmp > test
+	
+	echo "search grep R B4"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B4"
+	
+	# ********************B5 - terminated after 5 m *******************************
+	
+	sleep 300
+	
+	virsh dump $VM_NAME --memory-only kvm_b5_it$i.dmp 
+	
+
+	sleep 10
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B5 - terminated after 5 m: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b5_it$i.dmp > test
+	
+	echo "search grep R B5"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B5"
+	
+		
+	# ********************B6 - terminated after 10 m *******************************
+	
+	sleep 300
+	
+	virsh dump $VM_NAME --memory-only kvm_b6_it$i.dmp 
+	
+
+	sleep 10
+	
+	#for analysis -> was b5 before	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "B6 - terminated after 10 m: Search for pattern WHILE RUNNING writeRAM" 
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_b6_it$i.dmp > test
+	
+	echo "search grep R B6"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep R B6"
+	
+	sleep 10
+	
+
+	virsh reboot $VM_NAME
+	
+	sleep 60
+	
+	
+	# ********************C1 - just after reboot *******************************
+	virsh dump $VM_NAME --memory-only kvm_c1_it$i.dmp 
+
+	sleep 60
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C1 - just after reboot: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c1_it$i.dmp > test
+	
+	echo "search grep A C1"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C1"
+	
+	sleep 10
+	
+	# ********************C2 - after reboot after 5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c2_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C2 - after reboot after 5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c2_it$i.dmp > test
+	
+	echo "search grep A C2"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C2"
+	
+	sleep 10
+	
+	# ********************C3 - after reboot after 10 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c3_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C3 - after reboot after 10 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c3_it$i.dmp > test
+	
+	echo "search grep A C3"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C3"
+	
+	sleep 10
+	
+	# ********************C4 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c4_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C4 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c4_it$i.dmp > test
+	
+	echo "search grep A C4"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C4"
+	
+	sleep 10
+	
+	# ********************C5 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c5_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C5 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c5_it$i.dmp > test
+	
+	echo "search grep A C5"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C5"
+	
+	sleep 10
+	
+	# ********************C6 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c6_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C6 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c6_it$i.dmp > test
+	
+	echo "search grep A C6"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C6"
+	
+	sleep 10
+	
+	# ********************C7 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c7_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C7 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c7_it$i.dmp > test
+	
+	echo "search grep A C7"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C7"
+	
+	sleep 10
+	
+	# ********************C8 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c8_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C8 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c8_it$i.dmp > test
+	
+	echo "search grep A C8"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C8"
+	
+	sleep 10
+	
+	# ********************C8 - after reboot +5 m *******************************
+	virsh dump $VM_NAME --memory-only kvm_c8_it$i.dmp 
+
+	sleep 300
+	
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "C8 - after reboot +5 m: Search for pattern AFTER REBOOT"
+	
+	LANG=C grep -oaP -s "\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE................\xBE\xBA\xFE\xC0\x11\xFA\xAD\xDE" kvm_c8_it$i.dmp > test
+	
+	echo "search grep A C8"
+	
+	hexdump -e '33/1 " %02X" "\n"' test
+	
+	echo "done search grep A C8"
+	
+	sleep 10
+	
+	
+	virsh shutdown $VM_NAME
+	
+	
+	sleep 30
+	
+	#delete all dmp
+	
+	sleep 5
+	rm -rf *.dmp
+
+	
+    echo "*****************************************************************"
+    echo "End Iteration $i"
+	
+done
+
+
